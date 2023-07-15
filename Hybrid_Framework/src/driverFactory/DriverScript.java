@@ -1,0 +1,111 @@
+package driverFactory;
+
+import org.testng.Reporter;
+import org.testng.annotations.Test;
+
+import commonFunctions.FunctionLibrary;
+import utilities.ExcelFileUtil;
+
+public class DriverScript extends FunctionLibrary {
+	String inputpath ="./FileInput/DataEngine.xlsx";
+	String Outputpath ="./FileOutput/HybridResults.xlsx";
+	String TCSheet ="TestCases";
+	String TSSheet ="TestSteps";
+	@Test
+	public void starTtest() throws Throwable {
+		boolean res = false;
+		String tcres="";
+		ExcelFileUtil xl = new ExcelFileUtil(inputpath);
+		//row count in TCSheet,TSSheet
+		int TCCount= xl.rowCount(TCSheet);
+		int TSCount = xl.rowCount(TSSheet);
+		Reporter.log(TCCount+"   "+TSCount,true);
+		//iterate all rows in TCSheet
+		for(int i=1;i<=TSCount;i++)
+		{
+			//read module status cell
+			String Module_Status = xl.getCellData(TCSheet, i, 2);
+			if(Module_Status.equalsIgnoreCase("Y"))
+			{
+				//read tcid cell
+				String tcid = xl.getCellData(TCSheet, i, 0);
+				//iterate all rows in TSSheet
+				for(int j=1;j<=TSCount;j++)
+				{
+					String tsid = xl.getCellData(TSSheet, j, 0);
+					if(tcid.equalsIgnoreCase(tsid))
+					{
+						String keyword = xl.getCellData(TSSheet, j, 3);
+						if(keyword.equalsIgnoreCase("adminLogin"))
+						{
+							String para1 = xl.getCellData(TSSheet, j, 5);
+							String para2 = xl.getCellData(TSSheet, j, 6);
+							res =FunctionLibrary.PbLogin(para1, para2);                           
+						}
+						else if(keyword.equalsIgnoreCase("branchCreation"))
+						{
+							String para1 = xl.getCellData(TSSheet, j, 5);
+							String para2 = xl.getCellData(TSSheet, j, 6);
+							String para3 = xl.getCellData(TSSheet, j, 7);
+							String para4 = xl.getCellData(TSSheet, j, 8);
+							String para5 = xl.getCellData(TSSheet, j, 9);
+							String para6 = xl.getCellData(TSSheet, j, 10);
+							String para7 = xl.getCellData(TSSheet, j, 11);
+							String para8 = xl.getCellData(TSSheet, j, 12);
+							String para9 = xl.getCellData(TSSheet, j, 13);
+							FunctionLibrary.pBBranches();
+							res =FunctionLibrary.pBBranchcreation(para1, para2, para3, para4, para5, para6, para7, para8, para9);	                      
+						}
+						else if(keyword.equalsIgnoreCase("branchUpdate"))
+						{
+							String para1 = xl.getCellData(TSSheet, j, 5);
+							String para2 = xl.getCellData(TSSheet, j, 6);
+							String para5 = xl.getCellData(TSSheet, j, 9);
+							String para6 = xl.getCellData(TSSheet, j, 10);
+							FunctionLibrary.pBBranches();
+							res = FunctionLibrary.pbBranchUpdate(para1, para2, para5, para6);	                      
+						}
+						else if(keyword.equalsIgnoreCase("admimLogout"))
+						{
+							res = FunctionLibrary.pbLogout();							
+						}
+						String tsres="";
+						if(res)	
+						{
+							tsres="pass";
+							xl.setCellData(TSSheet, j, 4, tsres, Outputpath);							
+						}
+						else 
+						{
+							tsres="Fail";
+							xl.setCellData(TSSheet, j, 4, tsres, Outputpath);							
+						}
+						tcres=tsres;
+					}					
+				}
+				xl.setCellData(TSSheet, i, 3, tcres,Outputpath);
+			}
+			else
+			{
+				//write as blocked into TCSheet which test case flag to N
+				xl.setCellData(TCSheet, i, 3, "Blocked", Outputpath);
+
+			}
+		}
+	}	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
